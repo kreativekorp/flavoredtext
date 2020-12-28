@@ -1,0 +1,538 @@
+<html>
+<head>
+<style>
+* { margin: 0; padding: 0; }
+body { font-family: Helvetica, sans-serif; font-size: 14px; margin: 20px; }
+h1, h2, h3 { font-family: Futura, Helvetica, sans-serif; margin: 18px 0; }
+h1 { font-size: 28px; } h2 { font-size: 24px; } h3 { font-size: 18px; }
+p, pre, ul, ol, table { font-size: 14px; line-height: 18px; margin: 16px 0; }
+pre { margin-left: 4em; } ul, ol { margin-left: 2em; }
+tr:nth-child(odd) { background: #eee; }
+th, td { padding: 4px 20px 4px 4px; text-align: left; }
+table code, table ft { white-space: nowrap; }
+</style>
+<link rel="stylesheet" type="text/css" href="FlavoredText.css">
+<script type="text/javascript" src="FlavoredText.js"></script>
+</head>
+<body>
+
+<h1>FlavoredText</h1>
+
+<p>
+FlavoredText is a proof of concept using the SGR (Select Graphic Rendition)
+escape sequence as specified by ECMA-48 (aka ISO 6429, aka ANSI X3.64) to
+provide a thin layer of formatting on top of plain text.
+</p>
+
+<h2 id="html">Use in HTML with JavaScript</h2>
+
+<p>
+To use FlavoredText in an HTML document, first import
+the FlavoredText stylesheet and JavaScript code:
+</p>
+
+<pre>
+&lt;link rel="stylesheet" type="text/css" href="FlavoredText.css"&gt;
+&lt;script type="text/javascript" src="FlavoredText.js"&gt;&lt;/script&gt;
+</pre>
+
+<p>
+To convert flavored text to HTML, call
+<code>FlavoredText.toHtml</code>. For example:
+</p>
+
+<pre>
+let text = 'Hello \x1B[1mbold\x1B[0m \x1B[43mnew\x1B[0m world.';
+let options = {};
+document.body.innerHTML = FlavoredText.toHtml(text, options);
+</pre>
+
+<p>
+The optional <code>options</code> parameter is an object
+that can be used to customize the behavior of FlavoredText.
+The list of effective options is given in the
+<a href="#options">Options</a> section.
+</p>
+
+<p>
+To automatically convert instances of flavored text, call
+<code>FlavoredText.digest</code>, optionally with an options object.
+The flavored text must be in an <code>&lt;ft&gt;</code> tag, a tag with
+an <code>ft</code> attribute, or a tag with the <code>ft</code> class.
+The escape and bell characters can be included in an HTML document
+using the entities <code>&amp;#27;</code> and <code>&amp;#7;</code>
+respectively. When new flavored text is added to the document,
+the function must be called again. Multiple calls do not affect
+text that has already been converted.
+</p>
+
+<p>
+A good place to call this function is at the end of the document,
+just before the closing body tag:
+</p>
+
+<pre>
+...
+&lt;script type="text/javascript"&gt;FlavoredText.digest();&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</pre>
+
+<h2 id="php">Use in PHP</h2>
+
+<p>
+To use FlavoredText in PHP, import the FlavoredText library, create
+a FlavoredText object, then call the <code>tohtml</code> function.
+You will also need to include the FlavoredText stylesheet.
+(You do not need to include the JavaScript code.)
+</p>
+
+<pre>
+require_once('FlavoredText.php');
+
+echo '&lt;link rel="stylesheet" type="text/css" href="FlavoredText.css"&gt;';
+
+$ft = new FlavoredText();
+$text = "Hello \x1B[1mbold\x1B[0m \x1B[43mnew\x1B[0m world.";
+$options = array();
+echo $ft->tohtml($text, $options);
+</pre>
+
+<p>
+The optional <code>options</code> parameter is an array
+that can be used to customize the behavior of FlavoredText.
+The list of effective options is given in the
+<a href="#options">Options</a> section.
+</p>
+
+<h2>Use in Terminal Applications</h2>
+
+<p>
+Just output the text without changing anything. :)
+</p>
+
+<p>
+There are some sequences supported by FlavoredText that are not standard,
+and some that are standard but generally not supported by most terminal
+emulators. Unsupported sequences should be ignored by the terminal emulator.
+Non-standard sequences are marked with a bullet (&bull;) below.
+</p>
+
+<p>
+The ten escape sequences ( <code>ESC [ 10 m</code> through
+<code>ESC [ 19 m</code> ) for changing fonts are standard;
+however, the mapping to actual fonts is not standardized.
+FlavoredText maps them to the nine predefined keywords for
+the <code>font-family</code> CSS rule.
+</p>
+
+<h2 id="esc">Escape Sequences</h2>
+
+<table cellpadding="0" cellspacing="0">
+<tr>
+	<th>Formatting</th>
+	<th>Start Sequence</th>
+	<th>Stop Sequence</th>
+	<th>Example</th>
+</tr>
+<tr>
+	<td>Bold</td>
+	<td><code>ESC [ 1 m</code></td>
+	<td><code>ESC [ 22 m</code></td>
+	<td><ft>Have some &#27;[1mbold&#27;[22m text.</ft></td>
+</tr>
+<tr>
+	<td>Faint</td>
+	<td><code>ESC [ 2 m</code></td>
+	<td><code>ESC [ 22 m</code></td>
+	<td><ft>Have some &#27;[2mfaint&#27;[22m text.</ft></td>
+</tr>
+<tr>
+	<td>Italic</td>
+	<td><code>ESC [ 3 m</code></td>
+	<td><code>ESC [ 23 m</code></td>
+	<td><ft>Have some &#27;[3mitalic&#27;[23m text.</ft></td>
+</tr>
+<tr>
+	<td>Underline</td>
+	<td><code>ESC [ 4 m</code></td>
+	<td><code>ESC [ 24 m</code></td>
+	<td><ft>Have some &#27;[4munderlined&#27;[24m text.</ft></td>
+</tr>
+<tr>
+	<td>Blink</td>
+	<td><code>ESC [ 5 m</code></td>
+	<td><code>ESC [ 25 m</code></td>
+	<td><ft>Have some &#27;[5mblinking&#27;[25m text.</ft></td>
+</tr>
+<tr>
+	<td>Alternate &bull;</td>
+	<td><code>ESC [ 6 m</code></td>
+	<td><code>ESC [ 25 m</code></td>
+	<td><ft>Have some &#27;[6malternating&#27;[25m text.</ft></td>
+</tr>
+<tr>
+	<td>Inverse</td>
+	<td><code>ESC [ 7 m</code></td>
+	<td><code>ESC [ 27 m</code></td>
+	<td><ft>Have some &#27;[7minverse&#27;[27m text.</ft></td>
+</tr>
+<tr>
+	<td>Hidden</td>
+	<td><code>ESC [ 8 m</code></td>
+	<td><code>ESC [ 28 m</code></td>
+	<td><ft>Have some &#27;[8mhidden&#27;[28m text.</ft></td>
+</tr>
+<tr>
+	<td>Strikethrough</td>
+	<td><code>ESC [ 9 m</code></td>
+	<td><code>ESC [ 29 m</code></td>
+	<td><ft>Have some &#27;[9mstruck-through&#27;[29m text.</ft></td>
+</tr>
+<tr>
+	<td>Font: Serif</td>
+	<td><code>ESC [ 11 m</code></td>
+	<td><code>ESC [ 10 m</code></td>
+	<td><ft>Have some &#27;[11mserif&#27;[10m text.</ft></td>
+</tr>
+<tr>
+	<td>Font: Sans Serif</td>
+	<td><code>ESC [ 12 m</code></td>
+	<td><code>ESC [ 10 m</code></td>
+	<td><ft>Have some &#27;[12msans-serif&#27;[10m text.</ft></td>
+</tr>
+<tr>
+	<td>Font: Monospace</td>
+	<td><code>ESC [ 13 m</code></td>
+	<td><code>ESC [ 10 m</code></td>
+	<td><ft>Have some &#27;[13mmonospaced&#27;[10m text.</ft></td>
+</tr>
+<tr>
+	<td>Font: Cursive</td>
+	<td><code>ESC [ 14 m</code></td>
+	<td><code>ESC [ 10 m</code></td>
+	<td><ft>Have some &#27;[14mcursive&#27;[10m text.</ft></td>
+</tr>
+<tr>
+	<td>Font: Fantasy</td>
+	<td><code>ESC [ 15 m</code></td>
+	<td><code>ESC [ 10 m</code></td>
+	<td><ft>Have some &#27;[15mfantasy&#27;[10m text.</ft></td>
+</tr>
+<tr>
+	<td>Font: System UI</td>
+	<td><code>ESC [ 16 m</code></td>
+	<td><code>ESC [ 10 m</code></td>
+	<td><ft>Have some &#27;[16msystem-UI&#27;[10m text.</ft></td>
+</tr>
+<tr>
+	<td>Font: Emoji</td>
+	<td><code>ESC [ 17 m</code></td>
+	<td><code>ESC [ 10 m</code></td>
+	<td><ft>Have some &#27;[17memoji&#27;[10m text.</ft></td>
+</tr>
+<tr>
+	<td>Font: Math</td>
+	<td><code>ESC [ 18 m</code></td>
+	<td><code>ESC [ 10 m</code></td>
+	<td><ft>Have some &#27;[18mmath&#27;[10m text.</ft></td>
+</tr>
+<tr>
+	<td>Font: Fangsong</td>
+	<td><code>ESC [ 19 m</code></td>
+	<td><code>ESC [ 10 m</code></td>
+	<td><ft>Have some &#27;[19mfangsong&#27;[10m text.</ft></td>
+</tr>
+<tr>
+	<td>Fraktur (requires provided font)</td>
+	<td><code>ESC [ 20 m</code></td>
+	<td><code>ESC [ 23 m</code></td>
+	<td><ft>Have some &#27;[20mfraktur&#27;[23m text.</ft></td>
+</tr>
+<tr>
+	<td>Double Underline</td>
+	<td><code>ESC [ 21 m</code></td>
+	<td><code>ESC [ 24 m</code></td>
+	<td><ft>Have some &#27;[21mdouble-underlined&#27;[24m text.</ft></td>
+</tr>
+<tr>
+	<td>Double Strikethrough &bull;</td>
+	<td><code>ESC [ 26 m</code></td>
+	<td><code>ESC [ 29 m</code></td>
+	<td><ft>Have some &#27;[26mdouble-struck-through&#27;[29m text.</ft></td>
+</tr>
+<tr>
+	<td>Color: Black</td>
+	<td><code>ESC [ 30 m</code></td>
+	<td><code>ESC [ 39 m</code></td>
+	<td><ft>Have some &#27;[30mblack&#27;[39m text.</ft></td>
+</tr>
+<tr>
+	<td>Color: Red</td>
+	<td><code>ESC [ 31 m</code></td>
+	<td><code>ESC [ 39 m</code></td>
+	<td><ft>Have some &#27;[31mred&#27;[39m text.</ft></td>
+</tr>
+<tr>
+	<td>Color: Green</td>
+	<td><code>ESC [ 32 m</code></td>
+	<td><code>ESC [ 39 m</code></td>
+	<td><ft>Have some &#27;[32mgreen&#27;[39m text.</ft></td>
+</tr>
+<tr>
+	<td>Color: Yellow</td>
+	<td><code>ESC [ 33 m</code></td>
+	<td><code>ESC [ 39 m</code></td>
+	<td><ft>Have some &#27;[33myellow&#27;[39m text.</ft></td>
+</tr>
+<tr>
+	<td>Color: Blue</td>
+	<td><code>ESC [ 34 m</code></td>
+	<td><code>ESC [ 39 m</code></td>
+	<td><ft>Have some &#27;[34mblue&#27;[39m text.</ft></td>
+</tr>
+<tr>
+	<td>Color: Magenta</td>
+	<td><code>ESC [ 35 m</code></td>
+	<td><code>ESC [ 39 m</code></td>
+	<td><ft>Have some &#27;[35mmagenta&#27;[39m text.</ft></td>
+</tr>
+<tr>
+	<td>Color: Cyan</td>
+	<td><code>ESC [ 36 m</code></td>
+	<td><code>ESC [ 39 m</code></td>
+	<td><ft>Have some &#27;[36mcyan&#27;[39m text.</ft></td>
+</tr>
+<tr>
+	<td>Color: White</td>
+	<td><code>ESC [ 37 m</code></td>
+	<td><code>ESC [ 39 m</code></td>
+	<td><ft>Have some &#27;[37mwhite&#27;[39m text.</ft></td>
+</tr>
+<tr>
+	<td>Color: Custom (8-bit or 24-bit)</td>
+	<td><code>ESC [ 38 ; 2 ; &lt;r&gt; ; &lt;g&gt; ; &lt;b&gt; m</code><br><code>ESC [ 38 ; 5 ; &lt;index&gt; m</code></td>
+	<td><code>ESC [ 39 m</code></td>
+	<td><ft>Have some &#27;[38;2;153;104;51mcustom-colored&#27;[39m text.</ft></td>
+</tr>
+<tr>
+	<td>Background: Black</td>
+	<td><code>ESC [ 40 m</code></td>
+	<td><code>ESC [ 49 m</code></td>
+	<td><ft>Have some &#27;[40mblack&#27;[49m text.</ft></td>
+</tr>
+<tr>
+	<td>Background: Red</td>
+	<td><code>ESC [ 41 m</code></td>
+	<td><code>ESC [ 49 m</code></td>
+	<td><ft>Have some &#27;[41mred&#27;[49m text.</ft></td>
+</tr>
+<tr>
+	<td>Background: Green</td>
+	<td><code>ESC [ 42 m</code></td>
+	<td><code>ESC [ 49 m</code></td>
+	<td><ft>Have some &#27;[42mgreen&#27;[49m text.</ft></td>
+</tr>
+<tr>
+	<td>Background: Yellow</td>
+	<td><code>ESC [ 43 m</code></td>
+	<td><code>ESC [ 49 m</code></td>
+	<td><ft>Have some &#27;[43myellow&#27;[49m text.</ft></td>
+</tr>
+<tr>
+	<td>Background: Blue</td>
+	<td><code>ESC [ 44 m</code></td>
+	<td><code>ESC [ 49 m</code></td>
+	<td><ft>Have some &#27;[44mblue&#27;[49m text.</ft></td>
+</tr>
+<tr>
+	<td>Background: Magenta</td>
+	<td><code>ESC [ 45 m</code></td>
+	<td><code>ESC [ 49 m</code></td>
+	<td><ft>Have some &#27;[45mmagenta&#27;[49m text.</ft></td>
+</tr>
+<tr>
+	<td>Background: Cyan</td>
+	<td><code>ESC [ 46 m</code></td>
+	<td><code>ESC [ 49 m</code></td>
+	<td><ft>Have some &#27;[46mcyan&#27;[49m text.</ft></td>
+</tr>
+<tr>
+	<td>Background: White</td>
+	<td><code>ESC [ 47 m</code></td>
+	<td><code>ESC [ 49 m</code></td>
+	<td><ft>Have some &#27;[47mwhite&#27;[49m text.</ft></td>
+</tr>
+<tr>
+	<td>Background: Custom (8-bit or 24-bit)</td>
+	<td><code>ESC [ 48 ; 2 ; &lt;r&gt; ; &lt;g&gt; ; &lt;b&gt; m</code><br><code>ESC [ 48 ; 5 ; &lt;index&gt; m</code></td>
+	<td><code>ESC [ 49 m</code></td>
+	<td><ft>Have some &#27;[48;2;153;104;51mcustom-colored&#27;[49m text.</ft></td>
+</tr>
+<tr>
+	<td>Double Overline &bull;</td>
+	<td><code>ESC [ 50 m</code></td>
+	<td><code>ESC [ 55 m</code></td>
+	<td><ft>Have some &#27;[50mdouble-overlined&#27;[55m text.</ft></td>
+</tr>
+<tr>
+	<td>Framed</td>
+	<td><code>ESC [ 51 m</code></td>
+	<td><code>ESC [ 54 m</code></td>
+	<td><ft>Have some &#27;[51mframed&#27;[54m text.</ft></td>
+</tr>
+<tr>
+	<td>Circled</td>
+	<td><code>ESC [ 52 m</code></td>
+	<td><code>ESC [ 54 m</code></td>
+	<td><ft>Have some &#27;[52mcircled&#27;[54m text.</ft></td>
+</tr>
+<tr>
+	<td>Overline</td>
+	<td><code>ESC [ 53 m</code></td>
+	<td><code>ESC [ 55 m</code></td>
+	<td><ft>Have some &#27;[53moverlined&#27;[55m text.</ft></td>
+</tr>
+<tr>
+	<td>Dotted Underline &bull;</td>
+	<td><code>ESC [ 56 m</code></td>
+	<td><code>ESC [ 24 m</code></td>
+	<td><ft>Have some &#27;[56mdotted-underlined&#27;[24m text.</ft></td>
+</tr>
+<tr>
+	<td>Dotted Strikethrough &bull;</td>
+	<td><code>ESC [ 57 m</code></td>
+	<td><code>ESC [ 29 m</code></td>
+	<td><ft>Have some &#27;[57mdotted-struck-through&#27;[29m text.</ft></td>
+</tr>
+<tr>
+	<td>Dotted Overline &bull;</td>
+	<td><code>ESC [ 58 m</code></td>
+	<td><code>ESC [ 55 m</code></td>
+	<td><ft>Have some &#27;[58mdotted-overlined&#27;[55m text.</ft></td>
+</tr>
+<tr>
+	<td>Condensed &bull;</td>
+	<td><code>ESC [ 70 m</code></td>
+	<td><code>ESC [ 72 m</code></td>
+	<td><ft>Have some &#27;[70mcondensed&#27;[72m text.</ft></td>
+</tr>
+<tr>
+	<td>Extended &bull;</td>
+	<td><code>ESC [ 71 m</code></td>
+	<td><code>ESC [ 72 m</code></td>
+	<td><ft>Have some &#27;[71mextended&#27;[72m text.</ft></td>
+</tr>
+<tr>
+	<td>Superscript &bull;</td>
+	<td><code>ESC [ 73 m</code></td>
+	<td><code>ESC [ 75 m</code></td>
+	<td><ft>Have some &#27;[73msuperscript&#27;[75m text.</ft></td>
+</tr>
+<tr>
+	<td>Subscript &bull;</td>
+	<td><code>ESC [ 74 m</code></td>
+	<td><code>ESC [ 75 m</code></td>
+	<td><ft>Have some &#27;[74msubscript&#27;[75m text.</ft></td>
+</tr>
+<tr>
+	<td>Size: Smaller &bull;</td>
+	<td><code>ESC [ 76 m</code></td>
+	<td><code>ESC [ 79 m</code></td>
+	<td><ft>Have some &#27;[76msmaller&#27;[79m text.</ft></td>
+</tr>
+<tr>
+	<td>Size: Larger &bull;</td>
+	<td><code>ESC [ 77 m</code></td>
+	<td><code>ESC [ 79 m</code></td>
+	<td><ft>Have some &#27;[77mlarger&#27;[79m text.</ft></td>
+</tr>
+<tr>
+	<td>Size: Custom &bull;</td>
+	<td><code>ESC [ 78 ; 1 ; &lt;pixels&gt; m</code><br><code>ESC [ 78 ; 2 ; &lt;points&gt; m</code><br><code>ESC [ 78 ; 5 ; &lt;percent&gt; m</code></td>
+	<td><code>ESC [ 79 m</code></td>
+	<td><ft>Have some &#27;[78;1;24mcustom-sized&#27;[79m text.</ft></td>
+</tr>
+<tr>
+	<td>Color: Custom (named)</td>
+	<td><code>ESC ] 10 ; &lt;name&gt; BEL</code><br><code>ESC ] 10 ; &lt;name&gt; ESC \</code></td>
+	<td><code>ESC [ 39 m</code></td>
+	<td><ft>Have some &#27;]10;rebeccapurple&#7;custom-colored&#27;[39m text.</ft></td>
+</tr>
+<tr>
+	<td>Background: Custom (named)</td>
+	<td><code>ESC ] 11 ; &lt;name&gt; BEL</code><br><code>ESC ] 11 ; &lt;name&gt; ESC \</code></td>
+	<td><code>ESC [ 49 m</code></td>
+	<td><ft>Have some &#27;]11;rebeccapurple&#7;custom-colored&#27;[49m text.</ft></td>
+</tr>
+<tr>
+	<td>Font: Custom &bull;</td>
+	<td><code>ESC ] 18 ; &lt;font&gt; BEL</code><br><code>ESC ] 18 ; &lt;font&gt; ESC \</td>
+	<td><code>ESC [ 10 m</code></td>
+	<td><ft>Have some &#27;]18;Wingdings&#7;custom-font&#27;[10m text.</ft></td>
+</tr>
+<tr>
+	<td>Hyperlink &bull;</td>
+	<td><code>ESC ] 58 ; &lt;url&gt; BEL</code><br><code>ESC ] 58 ; &lt;url&gt; ESC \</td>
+	<td><code>ESC [ 59 m</code></td>
+	<td><ft>Have some &#27;]58;http://www.google.com&#7;linked&#27;[59m text.</ft></td>
+</tr>
+</table>
+
+<h2 id="options">Options</h2>
+
+<table cellpadding="0" cellspacing="0">
+<tr>
+	<th>Key</th>
+	<th>Value</th>
+	<th>Description</th>
+</tr>
+<tr>
+	<td><code>background</code></td>
+	<td>a CSS color</td>
+	<td>The default background color. Used as
+		the foreground color when text is inverted and
+		no background color is set. Defaults to white.</td>
+</tr>
+<tr>
+	<td><code>color</code></td>
+	<td>a CSS color</td>
+	<td>The default foreground color. Used as
+		the background color when text is inverted and
+		no foreground color is set. Defaults to black.</td>
+</tr>
+<tr>
+	<td><code>no-inverse</code></td>
+	<td>a boolean value</td>
+	<td>If truthy, the inverse text attribute will be ignored.</td>
+</tr>
+<tr>
+	<td><code>no-blink</code></td>
+	<td>a boolean value</td>
+	<td>If truthy, the blink or alternate text attribute will be ignored.</td>
+</tr>
+<tr>
+	<td><code>no-links</code></td>
+	<td>a boolean value</td>
+	<td>If truthy, no hyperlinks will be generated.</td>
+</tr>
+<tr>
+	<td><code>link-target</code></td>
+	<td>the name of a window, tab, or frame</td>
+	<td>Sets the target attribute of hyperlinks.</td>
+</tr>
+</table>
+
+<h2>Future Ideas</h2>
+
+<ul>
+<li>Convert the other way: HTML to FlavoredText</li>
+<li>Ports to Python, Ruby, etc.</li>
+<li>Java implementation (convert from String to AttributedString)</li>
+<li>Convert to RTF, PostScript, etc.</li>
+<li>A full-featured editor for FlavoredText files</li>
+</ul>
+
+<script type="text/javascript">FlavoredText.digest();</script>
+</body>
+</html>

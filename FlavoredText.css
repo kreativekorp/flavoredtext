@@ -1,0 +1,31 @@
+.ft-b { font-weight: bold; }
+.ft-i { font-style: italic; }
+.ft-f { font-family: UnifrakturMaguntia; }
+.ft-c { letter-spacing: -0.05em; }
+.ft-e { letter-spacing: 0.2em; }
+.ft-sup { vertical-align: super; font-size: smaller; line-height: normal; }
+.ft-sub { vertical-align: sub; font-size: smaller; line-height: normal; }
+.ft-u { text-decoration-line: underline; }
+.ft-s { text-decoration-line: line-through; }
+.ft-o { text-decoration-line: overline; }
+.ft-u.ft-s { text-decoration-line: underline line-through; }
+.ft-u.ft-o { text-decoration-line: underline overline; }
+.ft-s.ft-o { text-decoration-line: line-through overline; }
+.ft-u.ft-s.ft-o { text-decoration-line: underline line-through overline; }
+.ft-l { text-decoration-style: solid; }
+.ft-ll { text-decoration-style: double; }
+.ft-ldot { text-decoration-style: dotted; }
+.ft-bsq { border: solid 1px; }
+.ft-brd { border: solid 1px; border-radius: 0.5em; }
+.ft-d .ft-t { opacity: 50%; }
+.ft-h .ft-t { visibility: hidden; }
+@keyframes ft-blink { 50% { opacity: 0.0; } }
+@-webkit-keyframes ft-blink { 50% { opacity: 0.0; } }
+.ft-blink .ft-t {
+	animation: ft-blink 2s step-start 0s infinite;
+	-webkit-animation: ft-blink 2s step-start 0s infinite;
+}
+@font-face {
+	font-family: UnifrakturMaguntia;
+	src: local('UnifrakturMaguntia'), url('UnifrakturMaguntia.ttf') format('truetype');
+}
